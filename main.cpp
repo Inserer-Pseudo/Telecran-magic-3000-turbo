@@ -10,7 +10,7 @@ public:
 
     //tension en V
     double readRawValue() {
-        double rawValue = analogInput.read() * 5; // valeur de la tension * (5/1024)
+        double rawValue = analogInput.read() * 5;
         return rawValue;
   }
 
@@ -29,7 +29,7 @@ public:
         for(int i = 0; i < n; i++) {
             moy += getRawDistance();
             //ToDo virer ca et implementer interruption
-            ThisThread::sleep_for(10ms); // Attendre un peu entre les lectures
+            ThisThread::sleep_for(10ms);
         }
         return round(moy / n); // Calculer et retourner la moyenne
     }
@@ -105,7 +105,7 @@ int main() {
         // double tension = capteurDroit.readRawValue();
         // double distance = capteurDroit.getRawDistance();
 
-       // printf("Distance estimée : %d\n", static_cast<int>(avgDistance*10));
+        //printf("Distance estimée : %d\n", avgDistance);
 
         ThisThread::sleep_for(10ms);
     }
