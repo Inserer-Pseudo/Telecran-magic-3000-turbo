@@ -1,5 +1,15 @@
 #include "mbed.h"
+#include <cstdio>
 #include <cstdlib>
+
+InterruptIn Bouton(BUTTON1);
+Timer Appuie; 
+
+bool CmdReprendre;
+bool CmdSuivant;
+
+enum Etat {ATTENTE, CALIBRATION, DESSINE, EFFACE};
+Etat etatActuel = ATTENTE;
 
 class Sharp {
 private:
@@ -59,9 +69,8 @@ public:
         static_cast<uint8_t>((y >> 8) & 0xFF),
     };
     */
-
+    
     printf("%d,%d,\n", x, y);
-
     //_serial->write(&x_byte, sizeof(x_byte));
   }
 
@@ -69,9 +78,41 @@ private:
   UnbufferedSerial *_serial;
 };
 
+bool ClearScreen() {
+    printf("Clear\n");
+    /* On attend désormais la validation du processing*/
+    char Check_Processing[10];
+    scanf("%s", Check_Processing);
+    if (strcmp(Check_Processing, "ClearOk") == 0) {
+    /*si processing envoi le champ de validation alors on retourne True */
+        return true;
+    } else {
+        return false;
+    }
+} 
+
 // PRODUIT EN CROIX !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 int map(int x, int in_min, int in_max, int out_min, int out_max) {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+void startPress(){
+    Appuie.start();
+}
+
+void stopPress(){
+    Appuie.stop();
+
+    auto DureeAppuie = std::chrono::duration<float>(Appuie.elapsed_time()).count();
+    if (DureeAppuie >= 0.2 && DureeAppuie < 3.0){
+        CmdReprendre=true;
+        CmdSuivant=false;
+    } else if(DureeAppuie >= 3.0){
+        CmdReprendre=false;
+        CmdSuivant=true;
+    }
+
+    Appuie.reset();
 }
 
 int main() {
@@ -79,8 +120,11 @@ int main() {
     Sharp capteurDroit(PA_0);
 
     UnbufferedSerial serial(USBTX,USBRX,9600);
-
     comm display(&serial);
+
+    //Configuration des interruptions
+    Bouton.fall(&startPress);
+    Bouton.rise(&stopPress);
 
     int lower_bound_x = 10; // borne inférieure
     int upper_bound_x = 790; // borne supérieure
@@ -99,15 +143,51 @@ int main() {
 
         int yCoordToSend = map(avgDistance,7,40,10, 590);
 
+        switch(etatActuel) {
+        case ATTENTE:
+        
+            if (CmdSuivant) {
+                CmdSuivant = false;
+                etatActuel = CALIBRATION;
+            }
+            break;
+        case CALIBRATION:
+
+            if (CmdSuivant) {
+                CmdSuivant = false;
+                etatActuel = DESSINE;
+            }
+            break;
+        case DESSINE:
+
+            if (CmdSuivant) {
+                CmdSuivant = false;
+                etatActuel = EFFACE;
+            }
+            break;
+        case EFFACE:
+            if (ClearScreen()) {
+                if (CmdSuivant) {
+                    etatActuel = ATTENTE;
+                } else if (CmdReprendre) {
+                    etatActuel = DESSINE;
+                }
+            }
+            break;
+    }
+
         //printf("Point y : %d\n", yCoordToSend);
-        display.sendCoordinates(400, abs(yCoordToSend));
+        //display.sendCoordinates(400, abs(yCoordToSend));
 
         // double tension = capteurDroit.readRawValue();
         // double distance = capteurDroit.getRawDistance();
 
         //printf("Distance estimée : %d\n", avgDistance);
 
-        ThisThread::sleep_for(10ms);
+        printf("Etat clearScreen : %s\n", CmdReprendre ? "true" : "false");
+        ThisThread::sleep_for(1000ms);
+        printf("Etat calibration : %s\n", CmdSuivant ? "true" : "false");
+        ThisThread::sleep_for(1000ms);
     }
 
     return 0;
