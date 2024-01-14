@@ -7,6 +7,15 @@
 #include <cstdlib>
 
 InterruptIn Bouton(BUTTON1);
+Timer Appuie; 
+
+bool CmdReprendre;
+bool CmdSuivant;
+
+enum Etat {ATTENTE, CALIBRATION, DESSINE, EFFACE};
+Etat etatActuel = ATTENTE;
+
+InterruptIn Bouton(BUTTON1);
 Timer Appuie;
 
 Thread thread;
@@ -83,6 +92,39 @@ int main() {
         int avgDistance = capteurDroit.getAvgDistance(5);
 
         int yCoordToSend = map(avgDistance,7,40,10, 590);
+
+        switch(etatActuel) {
+        case ATTENTE:
+        
+            if (CmdSuivant) {
+                CmdSuivant = false;
+                etatActuel = CALIBRATION;
+            }
+            break;
+        case CALIBRATION:
+
+            if (CmdSuivant) {
+                CmdSuivant = false;
+                etatActuel = DESSINE;
+            }
+            break;
+        case DESSINE:
+
+            if (CmdSuivant) {
+                CmdSuivant = false;
+                etatActuel = EFFACE;
+            }
+            break;
+        case EFFACE:
+            if (ClearScreen()) {
+                if (CmdSuivant) {
+                    etatActuel = ATTENTE;
+                } else if (CmdReprendre) {
+                    etatActuel = DESSINE;
+                }
+            }
+            break;
+    }
 
         display.sendCoordinates(400, abs(yCoordToSend));
 
