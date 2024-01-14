@@ -1,10 +1,10 @@
 #include "Sharp.hpp"
 
 Sharp::Sharp(PinName pin) : analogInput(pin) {
-    distanceMin = defautDistanceMin;
-    distanceMax = defautDistanceMax;
-    coeff = defautCoeff;
-    decalage = defautDecalage;
+    this->distanceMin = defautDistanceMin;
+    this->distanceMax = defautDistanceMax;
+    this->coeff = defautCoeff;
+    this->decalage = defautDecalage;
 }
 
 Sharp::Sharp(PinName pin, int distanceMin, int distanceMax, float coeff, float decalage)  : analogInput(pin) {
@@ -14,7 +14,7 @@ Sharp::Sharp(PinName pin, int distanceMin, int distanceMax, float coeff, float d
     this->decalage = decalage;
 }
 
-Sharp::operator double() {return getAvgDistance(5);}
+Sharp::operator int() {return getAvgDistance(5);}
 
 double Sharp::readRawValue() {
     double rawValue = analogInput.read() * 5;
@@ -22,7 +22,6 @@ double Sharp::readRawValue() {
 }
 
 int Sharp::getRawDistance() {
-    //double distance = coeff * pow(readRawValue(), -1); // d'apres la datasheet
     double distance = coeff / (readRawValue() - decalage);
     if (distance > distanceMax) return distanceMax;
     if (distance < distanceMin) return distanceMin;
@@ -36,6 +35,6 @@ int Sharp::getAvgDistance(int n) {
         //ToDo virer ca et implementer interruption
         ThisThread::sleep_for(10ms);
     }
-    return round(moy / n); // Calculer et retourner la moyenne
+    return round(moy / n);
 }
 

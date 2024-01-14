@@ -10,7 +10,7 @@ InterruptIn Bouton(BUTTON1);
 Timer Appuie;
 
 Thread thread;
-std::atomic<bool> clearOKrecu(false);
+bool clearOKrecu(false);
 
 bool CmdReprendre;
 bool CmdSuivant;
