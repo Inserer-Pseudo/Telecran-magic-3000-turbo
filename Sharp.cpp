@@ -14,27 +14,26 @@ Sharp::Sharp(PinName pin, int distanceMin, int distanceMax, float coeff, float d
     this->decalage = decalage;
 }
 
-Sharp::operator int() {return getAvgDistance(5);}
+Sharp::operator float() {return getAvgDistance(5);}
 
 double Sharp::readRawValue() {
     double rawValue = analogInput.read() * 5;
     return rawValue;
 }
 
-int Sharp::getRawDistance() {
-    double distance = coeff / (readRawValue() - decalage);
+float Sharp::getRawDistance() {
+    float distance = coeff / (readRawValue() - decalage);
     if (distance > distanceMax) return distanceMax;
     if (distance < distanceMin) return distanceMin;
-    return round(distance);
+    return distance;
 }
 
-int Sharp::getAvgDistance(int n) {
-    double moy = 0;
+float Sharp::getAvgDistance(int n) {
+    float moy = 0;
     for(int i = 0; i < n; i++) {
         moy += getRawDistance();
-        //ToDo virer ca et implementer interruption
-        ThisThread::sleep_for(10ms);
+        ThisThread::sleep_for(5ms);
     }
-    return round(moy / n);
+    return (moy / n);
 }
 

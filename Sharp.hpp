@@ -43,7 +43,7 @@ public:
      * 
      * @return La distance lue à partir du capteur.
      */
-    operator int();
+    operator double();
 
     /**
      * @brief Lit la valeur brute du capteur.
@@ -57,7 +57,7 @@ public:
      * 
      * @return La distance brute en cm, retournée comme un entier plus la valeur multipliée par 10.
      */
-    int getRawDistance();
+    float getRawDistance();
 
     /**
      * @brief Obtient la distance moyenne lue par le capteur sur un certain nombre de lectures.
@@ -65,7 +65,7 @@ public:
      * @param n Le nombre de lectures à moyenner.
      * @return La distance moyenne en cm, retournée comme un entier plus la valeur multipliée par 10.
      */
-    int getAvgDistance(int n);
+    float getAvgDistance(int n);
 
     [[nodiscard]] int getDistanceMin() const noexcept { return distanceMin; }
     [[nodiscard]] int getDistanceMax() const noexcept { return distanceMax; }

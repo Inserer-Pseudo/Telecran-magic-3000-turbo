@@ -7,39 +7,15 @@
 #include <cstdlib>
 
 InterruptIn Bouton(BUTTON1);
-Timer Appuie; 
-
-bool CmdReprendre;
-bool CmdSuivant;
-
-enum Etat {ATTENTE, CALIBRATION, DESSINE, EFFACE};
-Etat etatActuel = ATTENTE;
-
-InterruptIn Bouton(BUTTON1);
 Timer Appuie;
 
 Thread thread;
-bool clearOKrecu(false);
 
-bool CmdReprendre;
+bool CmdEfface;
 bool CmdSuivant;
 
 enum Etat {ATTENTE, CALIBRATION, DESSINE, EFFACE};
 Etat etatActuel = ATTENTE;
-
-void checkClearOk() {
-    char retourProcessing[10];
-    while (!clearOKrecu) {
-        scanf("%s", retourProcessing);
-        if (strcmp(retourProcessing, "clearOk") == 0) {
-            clearOKrecu = true;
-        }
-    }
-}
-
-void ClearScreen() {
-    printf("clear\n");
-}
 
 // PRODUIT EN CROIX !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 int map(int x, int in_min, int in_max, int out_min, int out_max) {
@@ -55,11 +31,11 @@ void stopPress(){
 
     auto DureeAppuie = std::chrono::duration<float>(Appuie.elapsed_time()).count();
     if (DureeAppuie >= 0.2 && DureeAppuie < 3.0){
-        CmdReprendre=true;
-        CmdSuivant=false;
-    } else if(DureeAppuie >= 3.0){
-        CmdReprendre=false;
+        CmdEfface=false;
         CmdSuivant=true;
+    } else if(DureeAppuie >= 3.0){
+        CmdEfface=true;
+        CmdSuivant=false;
     }
 
     Appuie.reset();
@@ -75,23 +51,10 @@ int main() {
 
     Bouton.fall(&startPress);
     Bouton.rise(&stopPress);
-
-    int lower_bound_x = 10; // borne inférieure
-    int upper_bound_x = 790; // borne supérieure
-    int lower_bound_y = 10; // borne inférieure
-    int upper_bound_y = 590; // borne supérieure
-    int x,y;
-
-    srand(time(NULL)); // initialiser le générateur de nombres aléatoires
+    int avgDistance;
+    int yCoordToSend;
 
     while(1){
-
-        x = lower_bound_x + rand() % (upper_bound_x - lower_bound_x + 1); // générer un nombre aléatoire entre lower_bound et upper_bound
-        y = lower_bound_y + rand() % (upper_bound_y - lower_bound_y + 1);
-
-        int avgDistance = capteurDroit.getAvgDistance(5);
-
-        int yCoordToSend = map(avgDistance,7,40,10, 590);
 
         switch(etatActuel) {
         case ATTENTE:
@@ -101,6 +64,7 @@ int main() {
                 etatActuel = CALIBRATION;
             }
             break;
+
         case CALIBRATION:
 
             if (CmdSuivant) {
@@ -108,63 +72,22 @@ int main() {
                 etatActuel = DESSINE;
             }
             break;
+
         case DESSINE:
+            avgDistance = capteurDroit; // Equ à capteurDroit.getAvgDistance(5);
+            yCoordToSend = map(avgDistance,7,40,10, 590);
+            display.sendCoordinates(400, round(yCoordToSend));
 
             if (CmdSuivant) {
                 CmdSuivant = false;
                 etatActuel = EFFACE;
             }
             break;
+
         case EFFACE:
-            if (ClearScreen()) {
-                if (CmdSuivant) {
-                    etatActuel = ATTENTE;
-                } else if (CmdReprendre) {
-                    etatActuel = DESSINE;
-                }
-            }
-            break;
-    }
-
-        display.sendCoordinates(400, abs(yCoordToSend));
-
-        switch(etatActuel) {
-        case ATTENTE:
-
-            if (CmdSuivant) {
-                CmdSuivant = false;
-                etatActuel = CALIBRATION;
-            }
-            break;
-        case CALIBRATION:
-
-            // if (CmdSuivant) {
-            //     CmdSuivant = false;
-            //     etatActuel = DESSINE;
-            // }
-            break;
-        case DESSINE:
-            
-            if (CmdSuivant) {
-                CmdSuivant = false;
-                etatActuel = EFFACE;
-            }
-            break;
-        case EFFACE:
-
-            ClearScreen();
-            thread.start(checkClearOk);
-            //thread.join();
-
-            if (clearOKrecu) {
-                thread.terminate();
-                if (CmdSuivant) {
-                    etatActuel = ATTENTE;
-                    clearOKrecu = false;
-                } else if (CmdReprendre) {
-                    etatActuel = DESSINE;
-                    clearOKrecu = false;
-                }
+            display.clearScreen();
+            if (display.checkClearOk()) {
+                etatActuel = ATTENTE;
             }
             break;
     }
@@ -177,7 +100,7 @@ int main() {
 
         //printf("Distance estimée : %d\n", avgDistance);
 
-        //printf("Etat clearScreen : %s\n", CmdReprendre ? "true" : "false");
+        //printf("Etat clearScreen : %s\n", CmdEfface ? "true" : "false");
         //ThisThread::sleep_for(1000ms);
         //printf("Etat calibration : %s\n", CmdSuivant ? "true" : "false");
         ThisThread::sleep_for(100ms);

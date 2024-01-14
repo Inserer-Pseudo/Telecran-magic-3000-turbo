@@ -28,6 +28,10 @@ public:
      */
     void sendCoordinates(int x, int y);
 
+    void clearScreen();
+
+    bool checkClearOk();
+
 private:
     UnbufferedSerial *commSerie; ///< Pointeur vers un objet UnbufferedSerial pour la communication série.
 };
