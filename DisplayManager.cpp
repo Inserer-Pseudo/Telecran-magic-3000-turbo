@@ -18,7 +18,7 @@ bool DisplayManager::checkClearOk() {
     char retourProcessing[10];
     //while (!clearOKrecu) {
         scanf("%s", retourProcessing);
-        if (strcmp(retourProcessing, "clearOk") == 0) {
+        if (strcmp(retourProcessing, "clearOK") == 0) {
             return true;
         }
         else {

@@ -53,6 +53,7 @@ int main() {
             dureeAttente = std::chrono::duration<float>(timerAttente.elapsed_time()).count();
 
             if (dureeAttente >= 5.0) {
+                timerAttente.stop();
                 timerAttente.reset();
                 etatActuel = DESSINE;
             }
@@ -60,9 +61,9 @@ int main() {
 
         case DESSINE:
             avgDistanceGauche = capteurGauche; // Equ à capteurGauche.getAvgDistance(5);
-            xCoordToSend = map(avgDistanceGauche,10,80,10, 590);
+            xCoordToSend = map(avgDistanceGauche,10,80,110, 690);
             avgDistanceDroite = capteurDroit;
-            yCoordToSend = map(avgDistanceDroite,10,80,10, 590);
+            yCoordToSend = map(avgDistanceDroite,10,80,110, 470);
             display.sendCoordinates(xCoordToSend, yCoordToSend);
 
             if (CmdSuivant) {
@@ -73,9 +74,9 @@ int main() {
 
         case EFFACE:
             display.clearScreen();
-            if (display.checkClearOk()) {
-                etatActuel = ATTENTE;
-            }
+
+            etatActuel = ATTENTE;
+
             break;
     }
         ThisThread::sleep_for(10ms);
