@@ -28,8 +28,20 @@ public:
      */
     void sendCoordinates(int x, int y);
 
+    /**
+     * @brief Efface l'écran du DisplayManager.
+     *
+     * Cette fonction envoie une commande pour effacer l'écran.
+     * Elle ne retourne rien.
+     */
     void clearScreen();
 
+    /**
+     * @brief Vérifie si l'écran a été effacé.
+     *
+     * Cette fonction vérifie si la commande pour effacer l'écran a été exécutée avec succès.
+     * @return true si l'écran a été effacé avec succès, false sinon.
+     */
     bool checkClearOk();
 
 private:
