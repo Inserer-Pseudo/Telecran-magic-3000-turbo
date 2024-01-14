@@ -43,7 +43,7 @@ public:
      * 
      * @return La distance lue à partir du capteur.
      */
-    operator double();
+    operator float();
 
     /**
      * @brief Lit la valeur brute du capteur.

@@ -7,38 +7,14 @@
 #include <cstdlib>
 
 InterruptIn Bouton(BUTTON1);
-Timer Appuie;
 
-Thread thread;
-
-bool CmdEfface;
 bool CmdSuivant;
 
 enum Etat {ATTENTE, CALIBRATION, DESSINE, EFFACE};
 Etat etatActuel = ATTENTE;
 
-// PRODUIT EN CROIX !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-int map(int x, int in_min, int in_max, int out_min, int out_max) {
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
-void startPress(){
-    Appuie.start();
-}
-
-void stopPress(){
-    Appuie.stop();
-
-    auto DureeAppuie = std::chrono::duration<float>(Appuie.elapsed_time()).count();
-    if (DureeAppuie >= 0.2 && DureeAppuie < 3.0){
-        CmdEfface=false;
-        CmdSuivant=true;
-    } else if(DureeAppuie >= 3.0){
-        CmdEfface=true;
-        CmdSuivant=false;
-    }
-
-    Appuie.reset();
+int map(float x, int in_min, int in_max, int out_min, int out_max) {
+    return static_cast<int>((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min); //static_cast arrondi vers 0
 }
 
 // Premier thread managé par rtos
@@ -50,8 +26,8 @@ int main() {
     DisplayManager display(&serial);
 
     Bouton.fall(&startPress);
-    Bouton.rise(&stopPress);
-    int avgDistance;
+
+    float avgDistance;
     int yCoordToSend;
 
     while(1){
@@ -75,7 +51,7 @@ int main() {
 
         case DESSINE:
             avgDistance = capteurDroit; // Equ à capteurDroit.getAvgDistance(5);
-            yCoordToSend = map(avgDistance,7,40,10, 590);
+            yCoordToSend = map(avgDistance,10,80,10, 590);
             display.sendCoordinates(400, round(yCoordToSend));
 
             if (CmdSuivant) {
@@ -92,18 +68,8 @@ int main() {
             break;
     }
 
-        //printf("Point y : %d\n", yCoordToSend);
-        
-
-        // double tension = capteurDroit.readRawValue();
-        // double distance = capteurDroit.getRawDistance();
-
-        //printf("Distance estimée : %d\n", avgDistance);
-
-        //printf("Etat clearScreen : %s\n", CmdEfface ? "true" : "false");
-        //ThisThread::sleep_for(1000ms);
         //printf("Etat calibration : %s\n", CmdSuivant ? "true" : "false");
-        ThisThread::sleep_for(100ms);
+        ThisThread::sleep_for(10ms);
     }
 
     return 0;
